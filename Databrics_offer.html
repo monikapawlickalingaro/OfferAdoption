@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Databricks Transformation Platform — Proposal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Exo+2:wght@300;400;500;600&display=swap');
+
+:root{
+  --bg-deep:#040a17;
+  --bg-panel:#0a1730;
+  --bg-panel-2:#0d1c3b;
+  --line:#1e3a66;
+  --cyan:#3fd0ff;
+  --cyan-soft:#8fe3ff;
+  --blue:#4d8fff;
+  --text:#e7f0ff;
+  --text-dim:#8ea3c9;
+  --gold:#ffcf70;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(63,208,255,.10), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(77,143,255,.12), transparent 55%),
+    radial-gradient(ellipse 1000px 700px at 50% 120%, rgba(63,208,255,.08), transparent 60%),
+    var(--bg-deep);
+  color:var(--text);
+  font-family:'Exo 2', sans-serif;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* starfield */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, #cfe8ff 100%, transparent),
+    radial-gradient(1px 1px at 80% 10%, #cfe8ff 100%, transparent),
+    radial-gradient(1.5px 1.5px at 60% 70%, #cfe8ff 100%, transparent),
+    radial-gradient(1px 1px at 30% 85%, #cfe8ff 100%, transparent),
+    radial-gradient(1px 1px at 90% 60%, #cfe8ff 100%, transparent),
+    radial-gradient(1.5px 1.5px at 45% 35%, #cfe8ff 100%, transparent),
+    radial-gradient(1px 1px at 75% 90%, #cfe8ff 100%, transparent),
+    radial-gradient(1px 1px at 5% 55%, #cfe8ff 100%, transparent);
+  opacity:.5;
+  pointer-events:none;
+  z-index:0;
+}
+
+.wrap{max-width:1040px; margin:0 auto; padding:56px 32px 80px; position:relative; z-index:1;}
+
+/* HERO */
+.hero{
+  text-align:center;
+  padding:36px 20px 44px;
+  position:relative;
+}
+.hero .kicker{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600;
+  letter-spacing:.35em;
+  font-size:12px;
+  color:var(--cyan-soft);
+  margin-bottom:18px;
+}
+.hero h1{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+  font-size:clamp(34px,5vw,54px);
+  line-height:1.05;
+  background:linear-gradient(90deg,#ffffff 20%,var(--cyan-soft) 60%, var(--blue) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 40px rgba(63,208,255,.25);
+}
+.hero p{
+  max-width:620px;
+  margin:20px auto 0;
+  color:var(--text-dim);
+  font-size:16px;
+  line-height:1.6;
+}
+
+/* journey */
+.journey{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  margin:42px auto 0;
+  flex-wrap:wrap;
+  max-width:720px;
+}
+.journey .stage{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600;
+  font-size:14px;
+  letter-spacing:.08em;
+  color:var(--text);
+  border:1px solid var(--line);
+  background:rgba(63,208,255,.05);
+  padding:9px 16px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+.journey .arrow{ color:var(--cyan); opacity:.7; font-size:14px; }
+
+/* SECTION HEADS */
+.section-head{
+  display:flex;
+  align-items:baseline;
+  gap:14px;
+  margin:64px 0 22px;
+}
+.section-head .num{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  color:var(--bg-deep);
+  background:var(--cyan);
+  width:26px; height:26px;
+  border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 18px rgba(63,208,255,.5);
+}
+.section-head h2{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+  font-size:22px;
+  letter-spacing:.02em;
+}
+.section-head .rule{
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,var(--line),transparent);
+}
+
+/* CARDS GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+.card{
+  background:linear-gradient(180deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:22px 20px;
+  position:relative;
+  transition:border-color .2s ease;
+}
+.card::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius:10px;
+  padding:1px;
+  background:linear-gradient(135deg, rgba(63,208,255,.35), transparent 40%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+}
+.card .icon{
+  width:38px;height:38px;
+  border-radius:8px;
+  background:rgba(63,208,255,.1);
+  border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:14px;
+  color:var(--cyan-soft);
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+}
+.card h3{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600;
+  font-size:16.5px;
+  margin-bottom:8px;
+  color:#fff;
+}
+.card p{
+  font-size:13.5px;
+  color:var(--text-dim);
+  line-height:1.55;
+  margin-bottom:16px;
+  min-height:58px;
+}
+.card .price-row{
+  display:flex;
+  justify-content:space-between;
+  border-top:1px solid var(--line);
+  padding-top:12px;
+  font-family:'Rajdhani',sans-serif;
+}
+.card .price-row div{display:flex; flex-direction:column; gap:2px;}
+.card .price-row span.lbl{font-size:10.5px; letter-spacing:.1em; color:var(--text-dim);}
+.card .price-row span.val{font-size:17px; font-weight:700; color:var(--cyan-soft);}
+
+/* PRICING TABLE */
+.tablewrap{
+  background:linear-gradient(180deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+}
+table{width:100%; border-collapse:collapse; font-size:14px;}
+thead th{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600;
+  letter-spacing:.06em;
+  font-size:11.5px;
+  color:var(--cyan-soft);
+  text-align:left;
+  padding:16px 18px;
+  border-bottom:1px solid var(--line);
+  background:rgba(63,208,255,.04);
+}
+thead th.num, tbody td.num{text-align:right;}
+tbody td{
+  padding:14px 18px;
+  border-bottom:1px solid rgba(30,58,102,.5);
+  color:var(--text);
+  vertical-align:top;
+}
+tbody td.scope{color:var(--text-dim); font-size:12.5px;}
+tbody td.num{font-family:'Rajdhani',sans-serif; font-weight:600; color:var(--cyan-soft); white-space:nowrap;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.subtotal td{
+  color:var(--text-dim);
+  font-size:13px;
+  border-top:1px solid var(--line);
+}
+tbody tr.discount td{color:var(--gold); font-size:13px;}
+tbody tr.total td{
+  padding-top:18px; padding-bottom:18px;
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+  font-size:15px;
+  color:#fff;
+  background:rgba(63,208,255,.06);
+  border-top:1px solid var(--cyan);
+}
+tbody tr.total td.num{color:var(--cyan); font-size:19px;}
+
+/* SUMMARY / CTA */
+.summary{
+  margin-top:56px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+.summary .panel{
+  background:radial-gradient(circle at 30% 0%, rgba(63,208,255,.12), transparent 60%), var(--bg-panel);
+  border:1px solid var(--cyan);
+  border-radius:12px;
+  padding:26px 24px;
+  box-shadow:0 0 30px rgba(63,208,255,.12);
+}
+.summary .panel .country{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:600;
+  letter-spacing:.2em;
+  font-size:12px;
+  color:var(--text-dim);
+  margin-bottom:8px;
+}
+.summary .panel .price{
+  font-family:'Rajdhani',sans-serif;
+  font-weight:700;
+  font-size:36px;
+  color:#fff;
+  text-shadow:0 0 24px rgba(63,208,255,.4);
+}
+.summary .panel .label{
+  font-size:12.5px;
+  color:var(--text-dim);
+  margin-top:6px;
+}
+
+footer{
+  text-align:center;
+  margin-top:70px;
+  padding-top:26px;
+  border-top:1px solid var(--line);
+  color:var(--text-dim);
+  font-family:'Rajdhani',sans-serif;
+  letter-spacing:.15em;
+  font-size:11.5px;
+}
+
+/* subtle motion */
+.orb{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(60px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.55;
+}
+.orb-a{ width:420px; height:420px; top:-120px; left:-100px; background:radial-gradient(circle,rgba(63,208,255,.35),transparent 70%); animation:float-a 14s ease-in-out infinite; }
+.orb-b{ width:360px; height:360px; top:10%; right:-120px; background:radial-gradient(circle,rgba(77,143,255,.3),transparent 70%); animation:float-b 18s ease-in-out infinite; }
+.orb-c{ width:500px; height:500px; bottom:-160px; left:30%; background:radial-gradient(circle,rgba(63,208,255,.22),transparent 70%); animation:float-c 20s ease-in-out infinite; }
+
+@keyframes float-a{
+  0%,100%{ transform:translate(0,0); }
+  50%{ transform:translate(30px,25px); }
+}
+@keyframes float-b{
+  0%,100%{ transform:translate(0,0); }
+  50%{ transform:translate(-25px,30px); }
+}
+@keyframes float-c{
+  0%,100%{ transform:translate(0,0) scale(1); }
+  50%{ transform:translate(20px,-15px) scale(1.05); }
+}
+
+.star{
+  position:fixed;
+  border-radius:50%;
+  background:#cfe8ff;
+  pointer-events:none;
+  z-index:0;
+  animation:twinkle 4s ease-in-out infinite;
+}
+@keyframes twinkle{
+  0%,100%{ opacity:.15; }
+  50%{ opacity:.9; }
+}
+
+.card{
+  animation:drift 7s ease-in-out infinite;
+  will-change:transform;
+}
+@keyframes drift{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
+
+.summary .panel{
+  animation:glow-pulse 4.5s ease-in-out infinite;
+}
+@keyframes glow-pulse{
+  0%,100%{ box-shadow:0 0 30px rgba(63,208,255,.12); }
+  50%{ box-shadow:0 0 46px rgba(63,208,255,.28); }
+}
+
+.journey .stage{
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+
+@media(prefers-reduced-motion: reduce){
+  .orb, .star, .card, .summary .panel, .flyby{ animation:none !important; display:none; }
+}
+
+/* passing spaceships & planets */
+.flyby{
+  position:fixed;
+  pointer-events:none;
+  z-index:0;
+  opacity:0;
+}
+.flyby.ship{
+  animation:ship-pass 26s linear infinite;
+}
+.flyby.ship.reverse{
+  animation:ship-pass-rev 32s linear infinite;
+}
+.flyby.planet{
+  animation:planet-pass 46s linear infinite;
+}
+@keyframes ship-pass{
+  0%{ transform:translate(-8vw,0) rotate(4deg); opacity:0; }
+  4%{ opacity:.9; }
+  50%{ transform:translate(60vw,-40px) rotate(4deg); opacity:.9; }
+  92%{ opacity:.9; }
+  100%{ transform:translate(112vw,-70px) rotate(4deg); opacity:0; }
+}
+@keyframes ship-pass-rev{
+  0%{ transform:translate(108vw,0) rotate(180deg); opacity:0; }
+  4%{ opacity:.75; }
+  50%{ transform:translate(40vw,50px) rotate(180deg); opacity:.75; }
+  92%{ opacity:.75; }
+  100%{ transform:translate(-12vw,90px) rotate(180deg); opacity:0; }
+}
+@keyframes planet-pass{
+  0%{ transform:translate(-15vw,0) scale(.9); opacity:0; }
+  6%{ opacity:.85; }
+  50%{ transform:translate(55vw,60px) scale(1); opacity:.85; }
+  94%{ opacity:.85; }
+  100%{ transform:translate(120vw,110px) scale(1.05); opacity:0; }
+}
+
+.back-btn{
+  position:fixed; top:22px; left:24px; z-index:10;
+  display:flex; align-items:center; gap:8px;
+  padding:10px 18px 10px 14px;
+  border-radius:999px;
+  font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:.04em;
+  font-size:14px; color:var(--text);
+  background:rgba(10,23,48,.7);
+  border:1px solid var(--line);
+  text-decoration:none;
+  backdrop-filter:blur(6px);
+  transition:border-color .2s ease, background .2s ease, transform .15s ease;
+}
+.back-btn:hover{ border-color:var(--cyan); background:rgba(63,208,255,.12); transform:translateX(-2px); }
+.back-btn svg{ width:16px; height:16px; color:var(--cyan-soft); }
+
+@media(max-width:760px){
+  .grid{grid-template-columns:1fr;}
+  .summary{grid-template-columns:1fr;}
+  table{font-size:12.5px;}
+  thead th, tbody td{padding:10px 10px;}
+  .back-btn{ top:14px; left:14px; font-size:12.5px; padding:8px 14px 8px 10px; }
+}
+</style>
+</head>
+<body>
+
+<a href="Page2.html" class="back-btn">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 19l-7-7 7-7"></path></svg>
+  Back
+</a>
+
+<div class="orb orb-a" id="orbA"></div>
+<div class="orb orb-b" id="orbB"></div>
+<div class="orb orb-c"></div>
+<div id="starfield"></div>
+
+<svg class="flyby ship" style="top:12%; left:0; width:64px; animation-delay:1s;" viewBox="0 0 64 28" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="20" cy="14" rx="16" ry="6" fill="#0d1c3b" stroke="#3fd0ff" stroke-width="1.2"/>
+  <path d="M4 14 L-10 14" stroke="#3fd0ff" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+  <path d="M2 10 L-14 6 M2 18 L-14 22" stroke="#8fe3ff" stroke-width="1" opacity="0.5"/>
+  <circle cx="28" cy="14" r="3" fill="#8fe3ff"/>
+  <path d="M34 14 L44 14" stroke="#4d8fff" stroke-width="1"/>
+</svg>
+
+<svg class="flyby ship reverse" style="top:58%; left:0; width:50px; animation-delay:9s;" viewBox="0 0 64 28" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="20" cy="14" rx="14" ry="5" fill="#0a1730" stroke="#4d8fff" stroke-width="1.2"/>
+  <path d="M4 14 L-8 14" stroke="#4d8fff" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+  <circle cx="26" cy="14" r="2.4" fill="#3fd0ff"/>
+</svg>
+
+<svg class="flyby planet" style="top:28%; left:0; width:70px; animation-delay:4s;" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="28" fill="#0d1c3b" stroke="#3fd0ff" stroke-width="1"/>
+  <ellipse cx="50" cy="50" rx="46" ry="10" fill="none" stroke="#4d8fff" stroke-width="1.4" opacity="0.6" transform="rotate(-18 50 50)"/>
+  <circle cx="40" cy="42" r="4" fill="#3fd0ff" opacity="0.4"/>
+</svg>
+
+<svg class="flyby planet" style="top:72%; left:0; width:44px; animation-delay:20s;" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="30" fill="#0a1730" stroke="#8fe3ff" stroke-width="1"/>
+  <circle cx="36" cy="38" r="6" fill="#3fd0ff" opacity="0.35"/>
+</svg>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="kicker">TRANSFORMATION PLATFORM</div>
+    <h1>Databricks Transformation<br>Platform</h1>
+    <p>A comprehensive transformation platform supporting the full Databricks adoption journey — from learning and migration, through adoption and analytics, to AI-powered user support.</p>
+
+    <div class="journey">
+      <div class="stage">LEARN</div><div class="arrow">→</div>
+      <div class="stage">MIGRATE</div><div class="arrow">→</div>
+      <div class="stage">ADOPT</div><div class="arrow">→</div>
+      <div class="stage">ASK</div><div class="arrow">→</div>
+      <div class="stage">SUPPORT</div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="num">1</div>
+    <h2>Platform modules</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="icon">01</div>
+      <h3>Databricks Learning Hub</h3>
+      <p>SharePoint-based learning & mission platform — knowledge base, training and community in one place.</p>
+      <div class="price-row">
+        <div><span class="lbl">POLAND</span><span class="val">€35,000</span></div>
+        <div><span class="lbl">USA</span><span class="val">€62,000</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon">02</div>
+      <h3>Mission-Based Training</h3>
+      <p>6 hands-on missions with exercises, learning content and a skills-badge system.</p>
+      <div class="price-row">
+        <div><span class="lbl">POLAND</span><span class="val">€55,000</span></div>
+        <div><span class="lbl">USA</span><span class="val">€92,000</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon">03</div>
+      <h3>Migration Navigator</h3>
+      <p>Migration tracking, asset register, dashboards and project-status navigation.</p>
+      <div class="price-row">
+        <div><span class="lbl">POLAND</span><span class="val">€42,000</span></div>
+        <div><span class="lbl">USA</span><span class="val">€72,000</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon">04</div>
+      <h3>Power BI → Databricks</h3>
+      <p>Migration of up to 100 reports, including related data and dependencies.</p>
+      <div class="price-row">
+        <div><span class="lbl">POLAND</span><span class="val">€150,000</span></div>
+        <div><span class="lbl">USA</span><span class="val">€270,000</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon">05</div>
+      <h3>Adoption Commander Cockpit</h3>
+      <p>Adoption KPIs, engagement tracking, action areas and rollout progress monitoring.</p>
+      <div class="price-row">
+        <div><span class="lbl">POLAND</span><span class="val">€52,000</span></div>
+        <div><span class="lbl">USA</span><span class="val">€85,000</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="icon">06</div>
+      <h3>Databricks Voice Assistant</h3>
+      <p>AI / voice assistant answering questions about Databricks and Genie.</p>
+      <div class="price-row">
+        <div><span class="lbl">POLAND</span><span class="val">€45,000</span></div>
+        <div><span class="lbl">USA</span><span class="val">€75,000</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section-head">
+    <div class="num">2</div>
+    <h2>Pricing summary</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:34%">Product / service</th>
+          <th style="width:36%">Scope</th>
+          <th class="num">Poland</th>
+          <th class="num">USA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Databricks Learning Hub</td>
+          <td class="scope">SharePoint-based learning & mission platform</td>
+          <td class="num">€35,000</td>
+          <td class="num">€62,000</td>
+        </tr>
+        <tr>
+          <td>Mission-Based Training</td>
+          <td class="scope">6 hands-on missions, exercises, badges & content</td>
+          <td class="num">€55,000</td>
+          <td class="num">€92,000</td>
+        </tr>
+        <tr>
+          <td>Migration Navigator & Dashboard</td>
+          <td class="scope">Migration tracking, asset register, dashboards</td>
+          <td class="num">€42,000</td>
+          <td class="num">€72,000</td>
+        </tr>
+        <tr>
+          <td>Power BI → Databricks Migration</td>
+          <td class="scope">Migration of up to 100 reports + dependencies</td>
+          <td class="num">€150,000</td>
+          <td class="num">€270,000</td>
+        </tr>
+        <tr>
+          <td>Adoption Commander Cockpit</td>
+          <td class="scope">KPIs, engagement, progress monitoring</td>
+          <td class="num">€52,000</td>
+          <td class="num">€85,000</td>
+        </tr>
+        <tr>
+          <td>Databricks Voice Assistant</td>
+          <td class="scope">AI / voice assistant for Databricks & Genie</td>
+          <td class="num">€45,000</td>
+          <td class="num">€75,000</td>
+        </tr>
+        <tr class="subtotal">
+          <td colspan="2">Total individual value</td>
+          <td class="num">€379,000</td>
+          <td class="num">€656,000</td>
+        </tr>
+        <tr class="discount">
+          <td colspan="2">Transformation Package discount</td>
+          <td class="num">−€49,000</td>
+          <td class="num">−€76,000</td>
+        </tr>
+        <tr class="total">
+          <td colspan="2">TOTAL TRANSFORMATION PACKAGE</td>
+          <td class="num">€330,000</td>
+          <td class="num">€580,000</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="summary">
+    <div class="panel">
+      <div class="country">RECOMMENDED PRICE — POLAND</div>
+      <div class="price">€330,000</div>
+      <div class="label">Complete transformation solution</div>
+    </div>
+    <div class="panel">
+      <div class="country">RECOMMENDED PRICE — USA</div>
+      <div class="price">€580,000</div>
+      <div class="label">Complete transformation solution</div>
+    </div>
+  </div>
+
+  <footer>TOGETHER WE LEARN · TOGETHER WE GROW</footer>
+
+</div>
+
+<script>
+// twinkling starfield
+const starfield = document.getElementById('starfield');
+const starCount = 60;
+for (let i = 0; i < starCount; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 1.8 + 0.6;
+  s.style.width = size + 'px';
+  s.style.height = size + 'px';
+  s.style.left = Math.random() * 100 + 'vw';
+  s.style.top = Math.random() * 100 + 'vh';
+  s.style.animationDelay = (Math.random() * 4) + 's';
+  s.style.animationDuration = (3 + Math.random() * 3) + 's';
+  starfield.appendChild(s);
+}
+
+// stagger the gentle card float so they don't all move in sync
+document.querySelectorAll('.card').forEach((card, i) => {
+  card.style.animationDelay = (i * 0.4) + 's';
+});
+
+// subtle mouse parallax on the background orbs
+const orbA = document.getElementById('orbA');
+const orbB = document.getElementById('orbB');
+window.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth - 0.5);
+  const y = (e.clientY / window.innerHeight - 0.5);
+  orbA.style.transform = `translate(${x * 30}px, ${y * 20}px)`;
+  orbB.style.transform = `translate(${x * -25}px, ${y * 25}px)`;
+});
+
+// count-up animation for the two headline prices
+function countUp(el, target) {
+  const duration = 1400;
+  const start = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = Math.round(target * eased);
+    el.textContent = '€' + value.toLocaleString('en-US');
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+document.querySelectorAll('.summary .panel .price').forEach(el => {
+  const target = parseInt(el.textContent.replace(/[^\d]/g, ''), 10);
+  countUp(el, target);
+});
+</script>
+
+</body>
+</html>
